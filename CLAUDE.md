@@ -33,14 +33,14 @@ Everything lives in `index.html` — styles in a `<style>` block, scripts in a `
 
 | # | Section ID | Content |
 |---|-----------|---------|
-| 1 | `#hero` | Hero with typewriter animation, CTA buttons for Solana + ApeChain |
+| 1 | `#hero` | "Catch 'Em — On Chain" hero with typewriter animation, CTA buttons for Solana + ApeChain |
 | 2 | `#stats` | Stats banner with count-up numbers (2 chains, 4 balls, 20 Pokemon, 100% on-chain) |
 | 3 | `#about` | "What Is CatchEm?" description paragraph |
 | 4 | `#gameplay` | "How It Works" — 5-step card grid |
 | 5 | `#balls` | "Choose Your Ball" — 4 ball tier cards with pixel art SVG icons |
 | 6 | `#economy` | "Where Your Money Goes" — 96%/3%/~1% revenue split |
 | 7 | `#chains` | "Play On Your Chain" — Solana + ApeChain feature cards |
-| 8 | `#community` | "Join the Trainers" — X and GitHub links |
+| 8 | `#community` | "Join the Trainers" — X and GitHub placeholder buttons (no URLs yet) |
 | 9 | (footer) | Copyright, chain links, online indicator |
 
 ## CSS Architecture
@@ -100,6 +100,21 @@ All JS is in a single `<script>` block at the end of `<body>`:
 3. **Typewriter Effect** — Cycles through 3 phrases in the hero section with type/delete animation
 4. **Card Glow Tracking** — Updates `--mx`/`--my` CSS vars on mousemove for interactive glow
 
+## Ball Tiers (displayed in #balls section)
+
+| Ball | Price | Catch Rate | Flavor Text |
+|------|-------|-----------|-------------|
+| Poke Ball | $1.00 | 15% | "The classic. Affordable but risky." |
+| Great Ball | $10.00 | 35% | "Better odds for serious trainers." |
+| Ultra Ball | $25.00 | 60% | "High performance. High reward." |
+| Master Ball | $49.90 | **99%** (not 100%) | "The ultimate catch." |
+
+**Important:** Master Ball is 99% catch rate, NOT guaranteed. Do not use words like "guaranteed" or "never fails" when referring to it.
+
+## Solana Payments
+
+Solana chain uses **SolCATCH token** payments (not SOL or USDC directly).
+
 ## Ball Icon SVGs
 
 Each ball is a 16×16 pixel art SVG using `<rect>` elements:
@@ -130,8 +145,8 @@ Rows 9-14: Ball color (bottom half, circle shape)
 | "Launch on ApeChain" button | `https://ape.catchem.gg` |
 | "Play on Solana" card button | `https://sol.catchem.gg` |
 | "Play on ApeChain" card button | `https://ape.catchem.gg` |
-| X link | `https://x.com/CatchEmGG` |
-| GitHub link | `https://github.com/ZaraC-Codes` |
+| X button | Placeholder (`#`, no link yet) |
+| GitHub button | Placeholder (`#`, no link yet) |
 
 ## Fonts
 
@@ -190,7 +205,7 @@ Edit the `.ball-card` sections in HTML. Each card has `.price` and `.rate` divs.
 3. Add CTA button in the hero section
 
 ### Update social links
-Edit the `#community` section — the X and GitHub `<a>` tags.
+Edit the `#community` section — the X and GitHub `<a>` tags. Currently placeholder (`href="#"`).
 
 ### Modify animations
 - Scroll triggers: Adjust `threshold` and `rootMargin` in the IntersectionObserver config
