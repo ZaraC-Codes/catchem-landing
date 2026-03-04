@@ -178,6 +178,7 @@ Deployed on Vercel as static site:
 - No build command
 - Output directory: `.` (root)
 - Custom domain: `catchem.gg`
+- `vercel.json` enables `cleanUrls` so `/admin` serves `admin.html`
 
 ## Related Repositories
 
