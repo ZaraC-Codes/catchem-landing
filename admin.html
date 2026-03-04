@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CatchEm Admin</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect x='4' y='2' width='8' height='12' rx='4' fill='%23ff4444'/><rect x='4' y='7' width='8' height='2' fill='white'/></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0a0a;--panel:#1a1a1a;--border:rgba(255,204,0,.15);
+  --accent:#ffcc00;--green:#00ff88;--red:#ff4444;
+  --blue:#4488ff;--purple:#aa44ff;--text:#e0e0e0;--muted:#888;
+  --pixel:'Press Start 2P',monospace;--body:'Outfit',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh}
+
+/* ── Gate ── */
+#gate{display:flex;align-items:center;justify-content:center;min-height:100vh}
+.gate-box{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:2.5rem;text-align:center;max-width:360px;width:90%}
+.gate-box h1{font-family:var(--pixel);font-size:.85rem;color:var(--accent);margin-bottom:.5rem}
+.gate-box p{font-size:.85rem;color:var(--muted);margin-bottom:1.5rem}
+.gate-input{background:#111;border:1px solid var(--border);color:var(--text);padding:.65rem 1rem;border-radius:8px;font-size:1rem;width:100%;margin-bottom:1rem;font-family:var(--body);outline:none}
+.gate-input:focus{border-color:var(--accent)}
+.gate-btn{background:transparent;border:1px solid var(--accent);color:var(--accent);padding:.65rem 2rem;border-radius:8px;cursor:pointer;font-family:var(--pixel);font-size:.6rem;transition:background .2s}
+.gate-btn:hover{background:rgba(255,204,0,.1)}
+.gate-error{color:var(--red);font-size:.8rem;margin-top:.75rem;display:none}
+
+/* ── Dashboard ── */
+#app{display:none;max-width:1200px;margin:0 auto;padding:1.5rem 1rem}
+.header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+.header h1{font-family:var(--pixel);font-size:.8rem;color:var(--accent)}
+.chain-btns{display:flex;gap:.35rem}
+.chain-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:.4rem .9rem;border-radius:6px;cursor:pointer;font-family:var(--body);font-size:.85rem;font-weight:600;transition:all .2s}
+.chain-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(255,204,0,.08)}
+.chain-btn:hover{border-color:var(--accent);color:var(--accent)}
+.refresh-info{font-size:.75rem;color:var(--muted)}
+
+.status-bar{display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;font-size:.75rem;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.dot.ok{background:var(--green)}.dot.load{background:var(--accent);animation:pulse 1s infinite}.dot.err{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── Stat Cards ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.75rem;margin-bottom:1.25rem}
+.stat-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:1rem;text-align:center}
+.stat-value{font-size:1.4rem;font-weight:800;color:var(--accent);margin-bottom:.2rem;white-space:nowrap}
+.stat-label{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+
+/* ── Sections & Tables ── */
+.section{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:1.25rem;margin-bottom:1rem}
+.section h2{font-family:var(--pixel);font-size:.6rem;color:var(--accent);margin-bottom:.75rem}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:.7rem;color:var(--muted);text-transform:uppercase;padding:.5rem .5rem;border-bottom:1px solid var(--border)}
+td{padding:.55rem .5rem;font-size:.9rem;border-bottom:1px solid rgba(255,255,255,.03)}
+.ball-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:.5rem;vertical-align:middle}
+
+/* ── Notice ── */
+.notice{background:rgba(255,204,0,.04);border:1px solid rgba(255,204,0,.12);border-radius:8px;padding:.75rem 1rem;font-size:.85rem;color:var(--muted);line-height:1.5}
+.notice strong{color:var(--accent)}
+
+/* ── Charts ── */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.chart-box{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:1.25rem}
+.chart-box h3{font-family:var(--pixel);font-size:.55rem;color:var(--accent);margin-bottom:.75rem}
+.chart-box canvas{max-height:260px}
+
+/* ── Loading ── */
+#loading{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:100;flex-direction:column;gap:1rem}
+#loading .loading-text{font-family:var(--pixel);font-size:.65rem;color:var(--accent);text-align:center}
+#loading .loading-sub{font-size:.8rem;color:var(--muted)}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .charts-row{grid-template-columns:1fr}
+  .header{flex-direction:column;text-align:center}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:480px){.stats-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ═══════ PASSWORD GATE ═══════ -->
+<div id="gate">
+  <div class="gate-box">
+    <h1>CatchEm Admin</h1>
+    <p>Dashboard access</p>
+    <input type="password" class="gate-input" id="pw" placeholder="Password" autofocus>
+    <br><button class="gate-btn" id="login-btn">Enter</button>
+    <div class="gate-error" id="pw-err">Wrong password</div>
+  </div>
+</div>
+
+<!-- ═══════ DASHBOARD ═══════ -->
+<div id="app">
+  <div class="header">
+    <h1>CatchEm Admin</h1>
+    <div class="chain-btns">
+      <button class="chain-btn" data-chain="solana">Solana</button>
+      <button class="chain-btn" data-chain="apechain">ApeChain</button>
+      <button class="chain-btn active" data-chain="both">Both</button>
+    </div>
+    <div class="refresh-info">
+      <span id="last-refresh">—</span> &middot; Next in <span id="countdown">30</span>s
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span class="dot load" id="status-dot"></span>
+    <span id="status-text">Initializing...</span>
+  </div>
+
+  <div id="sol-notice" class="notice" style="display:none;margin-bottom:1rem">
+    <strong>Solana program not configured yet</strong> — metrics will appear after deployment and config update.
+  </div>
+
+  <!-- Overview stat cards -->
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-value" id="s-revenue">—</div><div class="stat-label">Total Revenue</div></div>
+    <div class="stat-card"><div class="stat-value" id="s-rev24">—</div><div class="stat-label">Revenue 24h</div></div>
+    <div class="stat-card"><div class="stat-value" id="s-throws">—</div><div class="stat-label">Total Throws</div></div>
+    <div class="stat-card"><div class="stat-value" id="s-winrate">—</div><div class="stat-label">Win Rate</div></div>
+    <div class="stat-card"><div class="stat-value" id="s-vault">—</div><div class="stat-label">Vault NFTs</div></div>
+    <div class="stat-card"><div class="stat-value" id="s-wallets">—</div><div class="stat-label">Unique Wallets</div></div>
+  </div>
+
+  <!-- Ball usage table -->
+  <div class="section">
+    <h2>Ball Usage &amp; Revenue</h2>
+    <table>
+      <thead><tr><th>Ball</th><th>Purchased</th><th>Revenue</th><th>% of Total</th></tr></thead>
+      <tbody id="ball-tbody">
+        <tr><td colspan="4" style="color:var(--muted);text-align:center">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mode usage table -->
+  <div class="section">
+    <h2>Mode Usage</h2>
+    <div class="notice">
+      Mode usage (Adventure vs Encounter) is not currently tracked on-chain.
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-row">
+    <div class="chart-box"><h3>Revenue by Tier</h3><canvas id="chart-revenue"></canvas></div>
+    <div class="chart-box"><h3>Ball Usage</h3><canvas id="chart-balls"></canvas></div>
+  </div>
+  <div class="section" style="padding-bottom:1.5rem">
+    <h2>Daily Revenue (est.)</h2>
+    <canvas id="chart-daily" style="max-height:220px"></canvas>
+  </div>
+</div>
+
+<!-- ═══════ LOADING OVERLAY ═══════ -->
+<div id="loading">
+  <div class="loading-text" id="loading-text">Scanning events...</div>
+  <div class="loading-sub" id="loading-sub"></div>
+</div>
+
+<!-- ═══════ LIBRARIES ═══════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════
+   CONFIG — Update these values as needed
+   ═══════════════════════════════════════════════ */
+const SOLANA_PROGRAM_ID  = 'TODO_SOLANA_PROGRAM_ID';
+const SOLANA_RPC         = 'https://api.devnet.solana.com';
+
+const APE_CONTRACT       = '0xB6e86aF8a85555c6Ac2D812c8B8BE8a60C1C432f';
+const APE_RPC            = 'https://apechain.calderachain.xyz/http';
+const APE_DEPLOY_BLOCK   = 0;  // set to actual deploy block for full history (0 = last ~1M blocks)
+
+const REFRESH_SEC        = 30;
+const PASSWORD           = 'catch3m';
+const BLOCK_TIME_APE     = 2;  // seconds per block on ApeChain
+
+/* ═══════════════════════════════════════════════
+   CONSTANTS
+   ═══════════════════════════════════════════════ */
+const BALL_NAMES  = ['Poke Ball','Great Ball','Ultra Ball','Master Ball'];
+const BALL_PRICES = [1, 10, 25, 49.90];
+const BALL_COLORS = ['#ff4444','#4488ff','#ffcc00','#aa44ff'];
+
+const APE_ABI = [
+  'event BallPurchased(address indexed buyer, uint8 ballType, uint256 quantity, bool usedAPE, uint256 totalAmount)',
+  'event ThrowAttempted(address indexed thrower, uint256 pokemonId, uint8 ballTier, uint64 sequenceNumber)',
+  'event CaughtPokemon(address indexed catcher, uint256 pokemonId, uint256 nftTokenId)',
+  'event FailedCatch(address indexed thrower, uint256 pokemonId, uint8 attemptsRemaining)',
+  'function totalRevenuePool() view returns (uint256)',
+  'function getNFTInventoryCount() view returns (uint256)',
+  'function accumulatedUSDCFees() view returns (uint256)',
+  'function accumulatedUSDCFeesB() view returns (uint256)',
+];
+
+/* ═══════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════ */
+let currentChain = 'both';
+let apeMetrics   = null;
+let solMetrics   = null;
+let countdown    = REFRESH_SEC;
+let charts       = { revenue: null, balls: null, daily: null };
+let scanning     = false;
+
+const solConfigured = SOLANA_PROGRAM_ID !== 'TODO_SOLANA_PROGRAM_ID';
+
+/* ═══════════════════════════════════════════════
+   PASSWORD GATE
+   ═══════════════════════════════════════════════ */
+function login() {
+  const val = document.getElementById('pw').value;
+  if (val === PASSWORD) {
+    sessionStorage.setItem('catchem_auth', '1');
+    showDashboard();
+  } else {
+    const err = document.getElementById('pw-err');
+    err.style.display = 'block';
+    setTimeout(() => err.style.display = 'none', 2000);
+  }
+}
+
+function showDashboard() {
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  init();
+}
+
+document.getElementById('pw').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+document.getElementById('login-btn').addEventListener('click', login);
+
+if (sessionStorage.getItem('catchem_auth') === '1') showDashboard();
+
+/* ═══════════════════════════════════════════════
+   CHAIN SELECTOR
+   ═══════════════════════════════════════════════ */
+document.querySelectorAll('.chain-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentChain = btn.dataset.chain;
+    document.querySelectorAll('.chain-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  });
+});
+
+/* ═══════════════════════════════════════════════
+   APECHAIN DATA FETCHER
+   ═══════════════════════════════════════════════ */
+const CACHE_KEY = 'catchem_ape_events';
+
+function loadEventCache() {
+  try { return JSON.parse(sessionStorage.getItem(CACHE_KEY)); } catch { return null; }
+}
+function saveEventCache(data) {
+  try { sessionStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch { /* quota */ }
+}
+
+async function fetchApeChain() {
+  const provider = new ethers.JsonRpcProvider(APE_RPC, 33139, { staticNetwork: true });
+  const contract = new ethers.Contract(APE_CONTRACT, APE_ABI, provider);
+  const iface    = new ethers.Interface(APE_ABI);
+
+  // 1) Fast contract state reads
+  const [revenuePool, vaultCount, feesA, feesB] = await Promise.all([
+    contract.totalRevenuePool().catch(() => 0n),
+    contract.getNFTInventoryCount().catch(() => 0n),
+    contract.accumulatedUSDCFees().catch(() => 0n),
+    contract.accumulatedUSDCFeesB().catch(() => 0n),
+  ]);
+
+  const currentBlock = await provider.getBlockNumber();
+
+  // 2) Event scanning (cached + incremental)
+  let cache  = loadEventCache();
+  let events = cache ? cache.events : { purchases: [], throws: [], catches: [], fails: [] };
+  let fromBlock;
+
+  if (cache && cache.lastBlock) {
+    fromBlock = cache.lastBlock + 1;
+  } else {
+    fromBlock = APE_DEPLOY_BLOCK > 0 ? APE_DEPLOY_BLOCK : Math.max(0, currentBlock - 1_000_000);
+  }
+
+  if (fromBlock <= currentBlock) {
+    const newEvents = await scanApeEvents(provider, iface, fromBlock, currentBlock);
+    events.purchases.push(...newEvents.purchases);
+    events.throws.push(...newEvents.throws);
+    events.catches.push(...newEvents.catches);
+    events.fails.push(...newEvents.fails);
+    saveEventCache({ lastBlock: currentBlock, events });
+  }
+
+  // 3) Compute metrics
+  const block24h = currentBlock - Math.floor(86400 / BLOCK_TIME_APE);
+
+  let totalRevenue = 0, revenue24h = 0;
+  const ballCounts = [0,0,0,0], ballRevenue = [0,0,0,0];
+  const wallets = new Set();
+  const dailyBuckets = {};
+
+  for (const e of events.purchases) {
+    const rev = e.qty * BALL_PRICES[e.bt];
+    totalRevenue += rev;
+    if (e.bt >= 0 && e.bt <= 3) { ballCounts[e.bt] += e.qty; ballRevenue[e.bt] += rev; }
+    if (e.blk >= block24h) revenue24h += rev;
+    wallets.add(e.addr);
+
+    const msAgo  = (currentBlock - e.blk) * BLOCK_TIME_APE * 1000;
+    const day    = new Date(Date.now() - msAgo).toISOString().slice(0, 10);
+    dailyBuckets[day] = (dailyBuckets[day] || 0) + rev;
+  }
+
+  for (const e of events.throws) wallets.add(e.addr);
+  for (const e of events.catches) wallets.add(e.addr);
+  for (const e of events.fails) wallets.add(e.addr);
+
+  const totalThrows  = events.throws.length;
+  const totalCatches = events.catches.length;
+  const totalFails   = events.fails.length;
+  const winRate      = totalThrows > 0 ? (totalCatches / totalThrows * 100) : 0;
+
+  return {
+    chain: 'apechain',
+    totalRevenue,
+    revenue24h,
+    totalThrows,
+    totalCatches,
+    totalFails,
+    winRate,
+    vaultNFTs: Number(vaultCount),
+    uniqueWallets: wallets.size,
+    ballCounts,
+    ballRevenue,
+    dailyBuckets,
+    contractRevenue: Number(revenuePool) / 1e6,
+    platformFees: (Number(feesA) + Number(feesB)) / 1e6,
+  };
+}
+
+async function scanApeEvents(provider, iface, fromBlock, toBlock) {
+  const topics = [[
+    iface.getEvent('BallPurchased').topicHash,
+    iface.getEvent('ThrowAttempted').topicHash,
+    iface.getEvent('CaughtPokemon').topicHash,
+    iface.getEvent('FailedCatch').topicHash,
+  ]];
+
+  const out = { purchases: [], throws: [], catches: [], fails: [] };
+  let chunk = 50_000;
+
+  for (let start = fromBlock; start <= toBlock;) {
+    const end = Math.min(start + chunk - 1, toBlock);
+    setLoadingSub(`Blocks ${start.toLocaleString()} – ${end.toLocaleString()} of ${toBlock.toLocaleString()}`);
+
+    try {
+      const logs = await provider.getLogs({ address: APE_CONTRACT, topics, fromBlock: start, toBlock: end });
+
+      for (const log of logs) {
+        const p = iface.parseLog({ topics: log.topics, data: log.data });
+        if (!p) continue;
+        const blk = log.blockNumber;
+        switch (p.name) {
+          case 'BallPurchased':
+            out.purchases.push({ addr: p.args[0].toLowerCase(), bt: Number(p.args[1]), qty: Number(p.args[2]), blk });
+            break;
+          case 'ThrowAttempted':
+            out.throws.push({ addr: p.args[0].toLowerCase(), bt: Number(p.args[2]), blk });
+            break;
+          case 'CaughtPokemon':
+            out.catches.push({ addr: p.args[0].toLowerCase(), blk });
+            break;
+          case 'FailedCatch':
+            out.fails.push({ addr: p.args[0].toLowerCase(), blk });
+            break;
+        }
+      }
+      start = end + 1;
+    } catch (err) {
+      if (chunk > 2_000) { chunk = Math.floor(chunk / 4); continue; }
+      console.error('Event scan error:', err);
+      break;
+    }
+  }
+  return out;
+}
+
+/* ═══════════════════════════════════════════════
+   SOLANA DATA FETCHER
+   ═══════════════════════════════════════════════ */
+let solanaWeb3Loaded = false;
+
+async function loadSolanaLib() {
+  if (solanaWeb3Loaded) return;
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://unpkg.com/@solana/web3.js@1.98.0/lib/index.iife.min.js';
+    s.onload = () => { solanaWeb3Loaded = true; resolve(); };
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+async function fetchSolana() {
+  if (!solConfigured) return null;
+
+  await loadSolanaLib();
+  const { Connection, PublicKey } = solanaWeb3;
+  const conn = new Connection(SOLANA_RPC, 'confirmed');
+  const programId = new PublicKey(SOLANA_PROGRAM_ID);
+
+  // Derive PDAs
+  const [gameConfigPda] = PublicKey.findProgramAddressSync(
+    [new TextEncoder().encode('game_config')], programId
+  );
+  const [nftVaultPda] = PublicKey.findProgramAddressSync(
+    [new TextEncoder().encode('nft_vault')], programId
+  );
+
+  // Read accounts
+  const [gameConfigInfo, nftVaultInfo] = await Promise.all([
+    conn.getAccountInfo(gameConfigPda).catch(() => null),
+    conn.getAccountInfo(nftVaultPda).catch(() => null),
+  ]);
+
+  let totalRevenue = 0, vaultNFTs = 0, ballPrices = [...BALL_PRICES];
+
+  if (gameConfigInfo?.data) {
+    const d = gameConfigInfo.data;
+    // Skip 8 (disc) + 32*4 (pubkeys) = 136
+    const view = new DataView(d.buffer, d.byteOffset);
+    let off = 136;
+    for (let i = 0; i < 4; i++) {
+      ballPrices[i] = Number(view.getBigUint64(off, true)) / 1e9;
+      off += 8;
+    }
+    off += 4 + 1; // catch_rates[4] + max_active_pokemon
+    off += 8;     // pokemon_id_counter
+    totalRevenue = Number(view.getBigUint64(off, true)) / 1e9;
+  }
+
+  if (nftVaultInfo?.data) {
+    const d = nftVaultInfo.data;
+    // Skip 8 (disc) + 32 (authority) + 32*20 (mints) = 680
+    vaultNFTs = d[680] || 0;
+  }
+
+  // Scan transaction logs for events
+  const events = { purchases: [], throws: [], catches: [], fails: [] };
+  const wallets = new Set();
+
+  try {
+    const sigs = await conn.getSignaturesForAddress(programId, { limit: 1000 });
+    const discs = await computeSolanaDiscriminators();
+
+    for (const sigInfo of sigs) {
+      if (sigInfo.err) continue;
+      let tx;
+      try {
+        tx = await conn.getTransaction(sigInfo.signature, { maxSupportedTransactionVersion: 0 });
+      } catch { continue; }
+      if (!tx?.meta?.logMessages) continue;
+
+      const signer = tx.transaction.message.staticAccountKeys?.[0]?.toBase58() || '';
+      if (signer) wallets.add(signer);
+
+      for (const log of tx.meta.logMessages) {
+        if (!log.startsWith('Program data: ')) continue;
+        try {
+          const raw = Uint8Array.from(atob(log.slice(14)), c => c.charCodeAt(0));
+          if (raw.length < 8) continue;
+          const disc = raw.slice(0, 8);
+          const discHex = Array.from(disc).map(b => b.toString(16).padStart(2,'0')).join('');
+
+          if (discHex === discs.BallPurchased && raw.length >= 45) {
+            const bt = raw[40];
+            const qty = new DataView(raw.buffer, raw.byteOffset).getUint32(41, true);
+            events.purchases.push({ addr: signer, bt, qty, blk: tx.slot });
+          } else if (discHex === discs.ThrowAttempted && raw.length >= 42) {
+            const bt = raw[40];
+            events.throws.push({ addr: signer, bt, blk: tx.slot });
+          } else if (discHex === discs.CaughtPokemon) {
+            events.catches.push({ addr: signer, blk: tx.slot });
+          } else if (discHex === discs.FailedCatch) {
+            events.fails.push({ addr: signer, blk: tx.slot });
+          }
+        } catch { /* skip malformed */ }
+      }
+    }
+  } catch (err) {
+    console.warn('Solana event scan:', err);
+  }
+
+  let revenue24h = 0;
+  const ballCounts = [0,0,0,0], ballRevenue = [0,0,0,0];
+  const dailyBuckets = {};
+  const now = Date.now();
+
+  for (const e of events.purchases) {
+    const rev = e.qty * BALL_PRICES[e.bt];
+    if (e.bt >= 0 && e.bt <= 3) { ballCounts[e.bt] += e.qty; ballRevenue[e.bt] += rev; }
+
+    // Use slot-based estimation for Solana (~400ms per slot)
+    const msAgo  = (Date.now() - now) + (e.blk ? (now - e.blk * 400) : 0);
+    const day    = new Date(now - Math.abs(msAgo)).toISOString().slice(0, 10);
+    dailyBuckets[day] = (dailyBuckets[day] || 0) + rev;
+  }
+
+  const eventRevenue = events.purchases.reduce((s, e) => s + e.qty * BALL_PRICES[e.bt], 0);
+  const totalThrows  = events.throws.length;
+  const totalCatches = events.catches.length;
+  const totalFails   = events.fails.length;
+  const winRate      = totalThrows > 0 ? (totalCatches / totalThrows * 100) : 0;
+
+  return {
+    chain: 'solana',
+    totalRevenue: totalRevenue || eventRevenue,
+    revenue24h: eventRevenue, // approximation from recent txs
+    totalThrows,
+    totalCatches,
+    totalFails,
+    winRate,
+    vaultNFTs,
+    uniqueWallets: wallets.size,
+    ballCounts,
+    ballRevenue,
+    dailyBuckets,
+  };
+}
+
+async function computeSolanaDiscriminators() {
+  const names = ['BallPurchased', 'ThrowAttempted', 'CaughtPokemon', 'FailedCatch'];
+  const result = {};
+  for (const name of names) {
+    const encoded = new TextEncoder().encode('event:' + name);
+    const hash = await crypto.subtle.digest('SHA-256', encoded);
+    const arr = new Uint8Array(hash).slice(0, 8);
+    result[name] = Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  return result;
+}
+
+/* ═══════════════════════════════════════════════
+   AGGREGATE METRICS
+   ═══════════════════════════════════════════════ */
+function getActiveMetrics() {
+  if (currentChain === 'apechain') return apeMetrics ? [apeMetrics] : [];
+  if (currentChain === 'solana')   return solMetrics ? [solMetrics] : [];
+  // both
+  const arr = [];
+  if (apeMetrics) arr.push(apeMetrics);
+  if (solMetrics) arr.push(solMetrics);
+  return arr;
+}
+
+function aggregate(sources) {
+  if (sources.length === 0) return null;
+  if (sources.length === 1) return sources[0];
+
+  const combined = {
+    totalRevenue: 0, revenue24h: 0, totalThrows: 0, totalCatches: 0, totalFails: 0,
+    vaultNFTs: 0, uniqueWallets: 0, winRate: 0,
+    ballCounts: [0,0,0,0], ballRevenue: [0,0,0,0], dailyBuckets: {},
+  };
+
+  for (const s of sources) {
+    combined.totalRevenue += s.totalRevenue;
+    combined.revenue24h  += s.revenue24h;
+    combined.totalThrows += s.totalThrows;
+    combined.totalCatches+= s.totalCatches;
+    combined.totalFails  += s.totalFails;
+    combined.vaultNFTs   += s.vaultNFTs;
+    combined.uniqueWallets += s.uniqueWallets; // different address formats, no overlap
+    for (let i = 0; i < 4; i++) {
+      combined.ballCounts[i]  += s.ballCounts[i];
+      combined.ballRevenue[i] += s.ballRevenue[i];
+    }
+    for (const [day, rev] of Object.entries(s.dailyBuckets)) {
+      combined.dailyBuckets[day] = (combined.dailyBuckets[day] || 0) + rev;
+    }
+  }
+
+  combined.winRate = combined.totalThrows > 0
+    ? (combined.totalCatches / combined.totalThrows * 100) : 0;
+
+  return combined;
+}
+
+/* ═══════════════════════════════════════════════
+   UI RENDERING
+   ═══════════════════════════════════════════════ */
+function $(id) { return document.getElementById(id); }
+function fmt$(n) { return '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmtN(n) { return n.toLocaleString(); }
+function fmtP(n) { return n.toFixed(1) + '%'; }
+
+function render() {
+  // Solana notice visibility
+  const showSolNotice = !solConfigured && (currentChain === 'solana' || currentChain === 'both');
+  $('sol-notice').style.display = showSolNotice ? 'block' : 'none';
+
+  const sources = getActiveMetrics();
+  const m = aggregate(sources);
+
+  if (!m) {
+    $('s-revenue').textContent = '—';
+    $('s-rev24').textContent   = '—';
+    $('s-throws').textContent  = '—';
+    $('s-winrate').textContent = '—';
+    $('s-vault').textContent   = '—';
+    $('s-wallets').textContent = '—';
+    $('ball-tbody').innerHTML   = '<tr><td colspan="4" style="color:var(--muted);text-align:center">No data</td></tr>';
+    destroyCharts();
+    return;
+  }
+
+  // Stat cards
+  $('s-revenue').textContent = fmt$(m.totalRevenue);
+  $('s-rev24').textContent   = fmt$(m.revenue24h);
+  $('s-throws').textContent  = fmtN(m.totalThrows);
+  $('s-winrate').textContent = fmtP(m.winRate);
+  $('s-vault').textContent   = fmtN(m.vaultNFTs);
+  $('s-wallets').textContent = fmtN(m.uniqueWallets);
+
+  // Ball table
+  const totalBallRev = m.ballRevenue.reduce((a, b) => a + b, 0);
+  let ballRows = '';
+  for (let i = 0; i < 4; i++) {
+    const pct = totalBallRev > 0 ? (m.ballRevenue[i] / totalBallRev * 100) : 0;
+    ballRows += `<tr>
+      <td><span class="ball-dot" style="background:${BALL_COLORS[i]}"></span>${BALL_NAMES[i]}</td>
+      <td>${fmtN(m.ballCounts[i])}</td>
+      <td>${fmt$(m.ballRevenue[i])}</td>
+      <td>${fmtP(pct)}</td>
+    </tr>`;
+  }
+  $('ball-tbody').innerHTML = ballRows;
+
+  // Charts
+  renderCharts(m);
+}
+
+/* ═══════════════════════════════════════════════
+   CHARTS
+   ═══════════════════════════════════════════════ */
+Chart.defaults.color = '#888';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+
+function destroyCharts() {
+  Object.keys(charts).forEach(k => { if (charts[k]) { charts[k].destroy(); charts[k] = null; } });
+}
+
+function renderCharts(m) {
+  destroyCharts();
+
+  // Revenue by tier (bar)
+  charts.revenue = new Chart($('chart-revenue'), {
+    type: 'bar',
+    data: {
+      labels: BALL_NAMES,
+      datasets: [{
+        data: m.ballRevenue,
+        backgroundColor: BALL_COLORS.map(c => c + '99'),
+        borderColor: BALL_COLORS,
+        borderWidth: 1,
+      }],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => fmt$(ctx.raw) } },
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: v => '$' + v } },
+      },
+    },
+  });
+
+  // Ball usage (doughnut)
+  charts.balls = new Chart($('chart-balls'), {
+    type: 'doughnut',
+    data: {
+      labels: BALL_NAMES,
+      datasets: [{
+        data: m.ballCounts,
+        backgroundColor: BALL_COLORS.map(c => c + 'cc'),
+        borderColor: '#1a1a1a',
+        borderWidth: 2,
+      }],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true, pointStyle: 'circle' } },
+      },
+    },
+  });
+
+  // Daily revenue (line)
+  const dailyEntries = Object.entries(m.dailyBuckets).sort((a, b) => a[0].localeCompare(b[0])).slice(-30);
+  charts.daily = new Chart($('chart-daily'), {
+    type: 'line',
+    data: {
+      labels: dailyEntries.map(([d]) => d.slice(5)), // MM-DD
+      datasets: [{
+        label: 'Revenue',
+        data: dailyEntries.map(([, v]) => v),
+        borderColor: '#ffcc00',
+        backgroundColor: 'rgba(255,204,0,0.1)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 3,
+        pointBackgroundColor: '#ffcc00',
+      }],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => fmt$(ctx.raw) } },
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: v => '$' + v } },
+      },
+    },
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   STATUS HELPERS
+   ═══════════════════════════════════════════════ */
+function setStatus(cls, text) {
+  $('status-dot').className = 'dot ' + cls;
+  $('status-text').textContent = text;
+}
+function showLoading(text) {
+  $('loading').style.display = 'flex';
+  $('loading-text').textContent = text;
+  $('loading-sub').textContent = '';
+}
+function setLoadingSub(text) { $('loading-sub').textContent = text; }
+function hideLoading() { $('loading').style.display = 'none'; }
+
+/* ═══════════════════════════════════════════════
+   REFRESH LOOP
+   ═══════════════════════════════════════════════ */
+async function refresh(showOverlay) {
+  if (scanning) return;
+  scanning = true;
+  setStatus('load', 'Fetching data...');
+  if (showOverlay) showLoading('Scanning blockchain events...');
+
+  try {
+    const results = await Promise.allSettled([
+      fetchApeChain(),
+      solConfigured ? fetchSolana() : Promise.resolve(null),
+    ]);
+
+    if (results[0].status === 'fulfilled') apeMetrics = results[0].value;
+    else console.error('ApeChain fetch error:', results[0].reason);
+
+    if (results[1].status === 'fulfilled') solMetrics = results[1].value;
+    else if (solConfigured) console.error('Solana fetch error:', results[1].reason);
+
+    render();
+    setStatus('ok', 'Live');
+    $('last-refresh').textContent = new Date().toLocaleTimeString();
+  } catch (err) {
+    console.error('Refresh error:', err);
+    setStatus('err', 'Error: ' + err.message);
+  } finally {
+    scanning = false;
+    hideLoading();
+    countdown = REFRESH_SEC;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════ */
+async function init() {
+  await refresh(true);
+
+  // Countdown timer
+  setInterval(() => {
+    countdown--;
+    if (countdown < 0) countdown = 0;
+    $('countdown').textContent = countdown;
+    if (countdown <= 0) refresh(false);
+  }, 1000);
+}
+</script>
+</body>
+</html>

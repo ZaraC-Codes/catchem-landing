@@ -22,12 +22,13 @@ No build step. No `npm install`. Just serve the directory.
 
 ```
 ├── index.html      # Complete landing page (~800 lines: HTML + CSS + JS)
+├── admin.html      # Admin dashboard — password-gated metrics (password: catch3m)
 ├── .gitignore      # Git ignore rules
 ├── CLAUDE.md       # This file
 └── README.md       # Project documentation
 ```
 
-Everything lives in `index.html` — styles in a `<style>` block, scripts in a `<script>` block at the end. No external CSS or JS files.
+Everything lives in single HTML files — styles in `<style>` blocks, scripts in `<script>` blocks at the end.
 
 ## Page Sections (in order)
 
@@ -193,6 +194,38 @@ Deployed on Vercel as static site:
 - Inline SVGs for icons (no external icon libraries)
 - Semantic HTML sections with descriptive comments
 - Mobile-first responsive design via media queries at bottom of `<style>`
+
+## Admin Dashboard (`admin.html`)
+
+Password-gated admin dashboard at `/admin` (password: `catch3m`).
+
+### Features
+- **Chain selector**: Solana | ApeChain | Both — filters all metrics
+- **Live metrics**: Auto-refreshes every 30 seconds
+- **Overview cards**: Total revenue, 24h revenue, throws, win rate, vault NFTs, unique wallets
+- **Ball table**: Per-tier counts, revenue, and percentage
+- **Mode table**: Placeholder — Adventure vs Encounter not tracked on-chain
+- **Charts**: Revenue by tier (bar), ball usage (doughnut), daily revenue (line)
+
+### Configuration (top of `<script>` block in admin.html)
+| Constant | Purpose |
+|----------|---------|
+| `SOLANA_PROGRAM_ID` | Solana program ID (set to `'TODO_SOLANA_PROGRAM_ID'` until deployed) |
+| `SOLANA_RPC` | Solana RPC endpoint |
+| `APE_CONTRACT` | ApeChain PokeballGame proxy address |
+| `APE_RPC` | ApeChain RPC endpoint |
+| `APE_DEPLOY_BLOCK` | Block to start event scanning from (0 = last ~1M blocks) |
+| `REFRESH_SEC` | Auto-refresh interval in seconds (default 30) |
+
+### Data Sources
+- **ApeChain**: ethers.js v6 — contract state reads + `eth_getLogs` event scanning (BallPurchased, ThrowAttempted, CaughtPokemon, FailedCatch)
+- **Solana**: @solana/web3.js — PDA account reads (GameConfig, NftVault) + transaction log parsing for Anchor events
+- Events are cached in `sessionStorage` for fast incremental refreshes
+
+### CDN Dependencies
+- ethers.js v6 (ApeChain)
+- Chart.js v4 (charts)
+- @solana/web3.js v1 (Solana, loaded dynamically only when configured)
 
 ## Common Tasks
 
