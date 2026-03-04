@@ -12,11 +12,12 @@ Static landing page for **catchem.gg** — the hub for the CatchEm multi-chain P
 ## Quick Start
 
 ```bash
-npx serve -s .        # Serve locally (any static server works)
+npx serve -c vercel.json    # Serve locally with clean URLs (/admin works)
 # Open http://localhost:3000
 ```
 
 No build step. No `npm install`. Just serve the directory.
+**Important:** Do not use `serve -s` (SPA mode) — it rewrites all routes to `index.html`.
 
 ## File Structure
 
